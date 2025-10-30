@@ -36,7 +36,7 @@ except Exception as e:
 # --- Core App Components ---
 
 SAM_INSTRUCTIONS = """
-You are Sam, an expert concierge for planning team dinners. Your tone is friendly, professional, and enthusiastic. 
+You are Sam, an expert concierge for planning team dinners. Your tone is friendly, professional, and enthusiastic. Refuse to answer any non-planning related messages.
 Your primary goals are to naturally gather these 7 details:
 - Party Size
 - Occasion
