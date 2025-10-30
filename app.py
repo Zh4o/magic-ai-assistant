@@ -7,7 +7,7 @@ import os
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Leo, your Loyalist Concierge",
+    page_title="Sam, your Loyalist Concierge",
     page_icon="🍽️",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -35,8 +35,8 @@ except Exception as e:
 
 # --- Core App Components ---
 
-LEO_INSTRUCTIONS = """
-You are Leo, an expert concierge for planning team dinners. Your tone is friendly, professional, and enthusiastic.
+SAM_INSTRUCTIONS = """
+You are Sam, an expert concierge for planning team dinners. Your tone is friendly, professional, and enthusiastic. 
 Your primary goals are to naturally gather these 7 details:
 - Party Size
 - Occasion
@@ -45,6 +45,8 @@ Your primary goals are to naturally gather these 7 details:
 - Date
 - Special requests or dietary restrictions
 - A contact email to send the options to.
+
+Today's date is October 30, 2025.
 
 Keep your responses concise and focused on gathering the next piece of information. Do not suggest restaurants.
 Once you have collected ALL details, with the Contact Email being the last critical piece, do two things in your final response:
@@ -71,7 +73,7 @@ def clear_conversation():
 # --- UI Rendering ---
 title_col, restart_col = st.columns([5, 1])
 with title_col:
-    st.title("Leo, your Concierge")
+    st.title("Sam, your Concierge")
 with restart_col:
     if "messages" in st.session_state and st.session_state.messages:
         st.button("Restart", on_click=clear_conversation, use_container_width=True)
@@ -111,32 +113,31 @@ for message in st.session_state.messages:
 
 # --- Handle Gemini API Call ---
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-    with st.chat_message("assistant"):
-        with st.spinner("Leo is thinking..."):
-            # Construct the conversation history for the API
-            conversation_history = [
-                {"role": "model" if m["role"] == "assistant" else m["role"], "parts": [{"text": m["content"]}]}
-                for m in st.session_state.messages
-            ]
+    # Construct the conversation history for the API
+    conversation_history = [
+        {"role": "model" if m["role"] == "assistant" else m["role"], "parts": [{"text": m["content"]}]}
+        for m in st.session_state.messages
+    ]
 
-            # Call the Gemini API
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=conversation_history,
-                config=types.GenerateContentConfig(
-                    system_instruction=LEO_INSTRUCTIONS)
-            )
-            response_text = response.text
+    # Call the Gemini API
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=conversation_history,
+        config=types.GenerateContentConfig(
+        system_instruction=SAM_INSTRUCTIONS)
+    )
+    response_text = response.text
 
-            # Check for the special token to control the finalize button's visibility
-            if "[READY_TO_FINALIZE]" in response_text:
-                st.session_state.ready_to_finalize = True
-                # Clean the token from the response before showing it to the user
-                response_text = response_text.replace("[READY_TO_FINALIZE]", "").strip()
+    # Check for the special token
+    if "[READY_TO_FINALIZE]" in response_text:
+        st.session_state.ready_to_finalize = True
+        response_text = response_text.replace("[READY_TO_FINALIZE]", "").strip()
 
-            st.markdown(response_text)
-            # Append the assistant's (cleaned) response to the chat history
-            st.session_state.messages.append({"role": "assistant", "content": response_text})
+    # Append the new response to the messages list
+    st.session_state.messages.append({"role": "assistant", "content": response_text})
+    
+    # Rerun the script so the display loop can show the new message
+    st.rerun()
 
 # --- Persistent Chat Input ---
 # This will now appear at the bottom, after the initial suggestions are handled.
