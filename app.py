@@ -4,6 +4,7 @@ from google.genai import types
 import gspread
 import json
 import os
+from datetime import date
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -35,7 +36,7 @@ except Exception as e:
 
 # --- Core App Components ---
 
-SAM_INSTRUCTIONS = """
+SAM_INSTRUCTIONS = f"""
 You are Sam, an expert concierge for planning team dinners. Your tone is friendly, professional, and enthusiastic. Refuse to answer any non-planning related messages.
 Your primary goals are to naturally gather these 7 details:
 - Party Size
@@ -46,7 +47,7 @@ Your primary goals are to naturally gather these 7 details:
 - Special requests or dietary restrictions
 - A contact email to send the options to.
 
-Today's date is October 30, 2025.
+Today's date is {date.today()}.
 
 Keep your responses concise and focused on gathering the next piece of information. Do not suggest restaurants.
 Once you have collected ALL details, with the Contact Email being the last critical piece, do two things in your final response:
@@ -56,9 +57,9 @@ Once you have collected ALL details, with the Contact Email being the last criti
 """
 
 SUGGESTIONS = {
-    "🎉 Sales Team Celebration": "Planning a dinner for our sales team to celebrate a great quarter. Maybe 15 people.",
+    "🎉 Sales Team Celebration": "Planning a dinner for our sales team to celebrate a great quarter.",
     "🤝 Client Dinner in SoHo": "I need to plan an impressive dinner for clients in SoHo.",
-    "🚀 Casual Team Lunch": "Can you help me find a spot for a casual team lunch for 10?",
+    "🚀 Casual Team Lunch": "Can you help me find a spot for a casual team lunch?",
 }
 
 def clear_conversation():
@@ -140,7 +141,6 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
     st.rerun()
 
 # --- Persistent Chat Input ---
-# This will now appear at the bottom, after the initial suggestions are handled.
 if prompt := st.chat_input("What can I help you plan?"):
     # Append the user's new message to the chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -154,7 +154,6 @@ if prompt := st.chat_input("What can I help you plan?"):
 if st.session_state.get("ready_to_finalize", False):
     if st.button("✅ Finalize and Save Details"):
         with st.spinner("Parsing our conversation and saving to Google Sheets..."):
-            # The rest of your button logic remains exactly the same.
             full_conversation = "\n".join([f"{m['role'].title()}: {m['content']}" for m in st.session_state.messages])
             parsing_prompt = f"""
             Analyze the following conversation and extract: Party Size, Occasion, Vibe, Budget, Date, Special Requests, and Contact Email.
