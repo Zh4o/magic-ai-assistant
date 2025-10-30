@@ -109,4 +109,4 @@ Once your secrets are configured, you can run the app with the following command
 streamlit run app.py
 ```
 
-Open your web browser to the local URL provided by Streamlit, and you can start chatting with Leo
+Open your web browser to the local URL provided by Streamlit, and you can start chatting.
